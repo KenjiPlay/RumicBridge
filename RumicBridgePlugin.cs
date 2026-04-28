@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Terraria;
-using TerrariaApi.Server;
 using TShockAPI;
 
 namespace RumicBridge;
 
-[ApiVersion(2, 1)]
 public class RumicBridgePlugin : TerrariaPlugin
 {
     private const string PluginFolderName = "RumicBridge";
@@ -38,7 +36,7 @@ public class RumicBridgePlugin : TerrariaPlugin
             File.WriteAllText(RewardsPath, "[]");
         }
 
-        ServerApi.Hooks.GameUpdate.Register(this, OnGameUpdate);
+        TShockAPI.Hooks.GeneralHooks.ReloadEvent += OnReload;
         TShock.Log.ConsoleInfo("[RumicBridge] Plugin cargado correctamente.");
     }
 
@@ -46,20 +44,14 @@ public class RumicBridgePlugin : TerrariaPlugin
     {
         if (disposing)
         {
-            ServerApi.Hooks.GameUpdate.Deregister(this, OnGameUpdate);
+            TShockAPI.Hooks.GeneralHooks.ReloadEvent -= OnReload;
         }
 
         base.Dispose(disposing);
     }
 
-    private void OnGameUpdate(EventArgs args)
+    private void OnReload(TShockAPI.Hooks.ReloadEventArgs args)
     {
-        if (DateTime.UtcNow - _lastCheck < _checkInterval)
-        {
-            return;
-        }
-
-        _lastCheck = DateTime.UtcNow;
         ProcessPendingRewards();
     }
 
@@ -103,9 +95,9 @@ public class RumicBridgePlugin : TerrariaPlugin
             }
 
             var amount = Math.Max(1, reward.Amount);
-            var itemId = TShock.Utils.GetItemByIdOrName(reward.Item);
+            var itemMatches = TShock.Utils.GetItemByIdOrName(reward.Item);
 
-            if (itemId.Count == 0)
+            if (itemMatches.Count == 0)
             {
                 reward.Delivered = true;
                 reward.Error = $"Item no encontrado: {reward.Item}";
@@ -113,7 +105,7 @@ public class RumicBridgePlugin : TerrariaPlugin
                 continue;
             }
 
-            if (itemId.Count > 1)
+            if (itemMatches.Count > 1)
             {
                 reward.Delivered = true;
                 reward.Error = $"Item ambiguo: {reward.Item}";
@@ -121,7 +113,7 @@ public class RumicBridgePlugin : TerrariaPlugin
                 continue;
             }
 
-            var item = itemId[0];
+            var item = itemMatches[0];
 
             player.GiveItem(item.type, item.Name, item.width, item.height, amount);
 
