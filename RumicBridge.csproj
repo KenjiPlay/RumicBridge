@@ -6,11 +6,16 @@
     <RootNamespace>RumicBridge</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TShockAPI" Version="6.1.0" PrivateAssets="all" />
+    <Reference Include="TShockAPI">
+      <HintPath>lib/TShockAPI.dll</HintPath>
+    </Reference>
+
+    <Reference Include="TerrariaServer">
+      <HintPath>lib/TerrariaServer.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
